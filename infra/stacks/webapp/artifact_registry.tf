@@ -7,18 +7,6 @@ data "google_artifact_registry_repository" "app" {
   repository_id = local.repository_id # whimsyhollow-<env>, created by bootstrap_project.sh
 }
 
-# One-time migration: the AR repo used to be a MANAGED resource in this stack; it now
-# lives in bootstrap (read via the data source above). This `removed` block makes the
-# normal `tfs apply` drop the old managed resource from state WITHOUT destroying the
-# live repo (destroy = false) — no manual `terraform state rm` needed. Safe to delete
-# once every env has applied once (state no longer holds the managed repo).
-removed {
-  from = google_artifact_registry_repository.app
-  lifecycle {
-    destroy = false
-  }
-}
-
 # Cloud Run pulls the image as the runtime SA — give it read on the repo.
 resource "google_artifact_registry_repository_iam_member" "runtime_reader" {
   location   = data.google_artifact_registry_repository.app.location
