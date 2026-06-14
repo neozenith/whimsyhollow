@@ -110,82 +110,88 @@ resource "google_cloud_run_v2_service" "app" {
         }
       }
 
-      # Boot the agent sidecar first so the proxy is ready on cold start.
-      depends_on = ["agent"]
+      # SMOKE-TEST: the agent sidecar (below) is disabled while there is no real
+      # application image — the `hello` placeholder doesn't listen on 8081, so the
+      # sidecar's startup probe would never pass and the revision would never go
+      # Ready. Restore by un-commenting this depends_on AND the agent container
+      # block below once real images exist (see PR #1 / smoke-test commit).
+      # depends_on = ["agent"]
     }
 
     # --- Sidecar container: the ADK agent (keyless Vertex via the shared runtime SA;
     # Cloud Run uses ONE service account per service, so a dedicated agent SA needs
     # the dual-service model). No ports block: localhost-only, reached via the proxy. ---
-    containers {
-      name  = "agent"
-      image = var.agent_image
-
-      env {
-        name  = "GOOGLE_GENAI_USE_VERTEXAI"
-        value = "True"
-      }
-      env {
-        name  = "GOOGLE_CLOUD_PROJECT"
-        value = local.project_id
-      }
-      env {
-        name  = "GOOGLE_CLOUD_LOCATION"
-        value = var.vertex_location
-      }
-      env {
-        name  = "AGENT_MODEL"
-        value = var.agent_model
-      }
-      # Durable ADK sessions in Firestore (services.py maps firestore:// to the custom
-      # FirestoreSessionService; DB id from FIRESTORE_DATABASE). Unset => in-memory.
-      env {
-        name  = "SESSION_SERVICE_URI"
-        value = "firestore://"
-      }
-      # Bookkeeping target (LlmUsageManager writes here via agentic-core). Firestore by
-      # default; BIGQUERY_DATASET kept so an env can revert via DATABASE_BACKEND.
-      env {
-        name  = "DATABASE_BACKEND"
-        value = "firestore"
-      }
-      env {
-        name  = "GCP_PROJECT"
-        value = local.project_id
-      }
-      env {
-        name  = "FIRESTORE_DATABASE"
-        value = google_firestore_database.app.name
-      }
-      env {
-        name  = "BIGQUERY_DATASET"
-        value = google_bigquery_dataset.app.dataset_id
-      }
-      env {
-        name  = "LLM_USAGE_TABLE"
-        value = google_bigquery_table.llm_usage.table_id
-      }
-
-      resources {
-        cpu_idle = true
-        limits = {
-          cpu    = "1"
-          memory = "1Gi"
-        }
-      }
-
-      # Required because the backend container depends_on this one: Cloud Run needs a
-      # startup probe to know the agent is ready before starting the backend. adk web
-      # can take a while to import, so allow a generous window.
-      startup_probe {
-        tcp_socket {
-          port = 8081
-        }
-        period_seconds    = 5
-        timeout_seconds   = 3
-        failure_threshold = 30
-      }
-    }
+    # SMOKE-TEST: temporarily disabled — see the note on the backend depends_on above.
+    # Restore this entire block (and the depends_on) when a real agent image exists.
+    # containers {
+    #   name  = "agent"
+    #   image = var.agent_image
+    #
+    #   env {
+    #     name  = "GOOGLE_GENAI_USE_VERTEXAI"
+    #     value = "True"
+    #   }
+    #   env {
+    #     name  = "GOOGLE_CLOUD_PROJECT"
+    #     value = local.project_id
+    #   }
+    #   env {
+    #     name  = "GOOGLE_CLOUD_LOCATION"
+    #     value = var.vertex_location
+    #   }
+    #   env {
+    #     name  = "AGENT_MODEL"
+    #     value = var.agent_model
+    #   }
+    #   # Durable ADK sessions in Firestore (services.py maps firestore:// to the custom
+    #   # FirestoreSessionService; DB id from FIRESTORE_DATABASE). Unset => in-memory.
+    #   env {
+    #     name  = "SESSION_SERVICE_URI"
+    #     value = "firestore://"
+    #   }
+    #   # Bookkeeping target (LlmUsageManager writes here via agentic-core). Firestore by
+    #   # default; BIGQUERY_DATASET kept so an env can revert via DATABASE_BACKEND.
+    #   env {
+    #     name  = "DATABASE_BACKEND"
+    #     value = "firestore"
+    #   }
+    #   env {
+    #     name  = "GCP_PROJECT"
+    #     value = local.project_id
+    #   }
+    #   env {
+    #     name  = "FIRESTORE_DATABASE"
+    #     value = google_firestore_database.app.name
+    #   }
+    #   env {
+    #     name  = "BIGQUERY_DATASET"
+    #     value = google_bigquery_dataset.app.dataset_id
+    #   }
+    #   env {
+    #     name  = "LLM_USAGE_TABLE"
+    #     value = google_bigquery_table.llm_usage.table_id
+    #   }
+    #
+    #   resources {
+    #     cpu_idle = true
+    #     limits = {
+    #       cpu    = "1"
+    #       memory = "1Gi"
+    #     }
+    #   }
+    #
+    #   # Required because the backend container depends_on this one: Cloud Run needs a
+    #   # startup probe to know the agent is ready before starting the backend. adk web
+    #   # can take a while to import, so allow a generous window.
+    #   startup_probe {
+    #     tcp_socket {
+    #       port = 8081
+    #     }
+    #     period_seconds    = 5
+    #     timeout_seconds   = 3
+    #     failure_threshold = 30
+    #   }
+    # }
   }
 
   depends_on = [google_project_service.run, google_project_service.aiplatform]
