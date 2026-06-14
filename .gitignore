@@ -218,3 +218,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 tmp/
+# frontend/src/lib is application source — exempt it from the generic `lib/` ignore above.
+!frontend/src/lib/
+!frontend/src/lib/**

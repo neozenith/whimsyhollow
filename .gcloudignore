@@ -1,0 +1,15 @@
+# Keep the Cloud Build upload (repo-root context) small. The Docker build only
+# needs backend/ + frontend/ source; everything below is rebuilt in-image or unused.
+.git/
+**/.venv/
+**/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/dist/
+**/.terraform/
+**/test-results/
+**/playwright-report/
+infra/diagrams/
+tmp/
