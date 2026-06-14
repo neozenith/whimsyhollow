@@ -45,16 +45,25 @@ inputs:
 runs:
   using: composite
   steps:
-    # Redact the IAP allow-list from this (public) job's logs. The list isn't marked
-    # terraform-`sensitive` (that breaks TF_VAR_ supply), so instead we ::add-mask::
-    # each email up front — every later terraform plan/apply line prints "user:***"
-    # rather than the real address. Reads the TF_VAR_ values already in the job env.
-    - name: Mask IAP member emails in logs
+    # IAP allow-list handling (reads the plain IAP_MEMBERS / IAP_MEMBER_GROUPS job env):
+    #  1. ::add-mask:: every email so terraform plan/apply prints "user:***" in the
+    #     public logs (the list isn't terraform-`sensitive` — that breaks TF_VAR_ supply).
+    #  2. Export TF_VAR_* ONLY when a real value is provided. An empty/unset value is
+    #     left to the terraform default ([]) — passing an empty list via TF_VAR_ trips
+    #     terraform's plan/apply consistency check ("[]" vs empty tuple). dev (no secret)
+    #     therefore deploys public with zero members, no error.
+    - name: Mask + export IAP allow-list
       shell: bash
       run: |
-        emails=$(printf '%s\n%s\n' "${TF_VAR_iap_members:-}" "${TF_VAR_iap_member_groups:-}" \
+        emails=$(printf '%s\n%s\n' "${IAP_MEMBERS:-}" "${IAP_MEMBER_GROUPS:-}" \
           | grep -oiE '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}' | sort -u || true)
         for e in $emails; do echo "::add-mask::$e"; done
+        if [ -n "${IAP_MEMBERS:-}" ] && [ "${IAP_MEMBERS}" != "[]" ]; then
+          echo "TF_VAR_iap_members=${IAP_MEMBERS}" >> "$GITHUB_ENV"
+        fi
+        if [ -n "${IAP_MEMBER_GROUPS:-}" ] && [ "${IAP_MEMBER_GROUPS}" != "[]" ]; then
+          echo "TF_VAR_iap_member_groups=${IAP_MEMBER_GROUPS}" >> "$GITHUB_ENV"
+        fi
 
     - id: auth
       uses: google-github-actions/auth@v3

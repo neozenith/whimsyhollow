@@ -106,16 +106,13 @@ jobs:
       # prod plan from showing google_iap_settings as removed.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
-      # action ::add-mask::es each email so it's also redacted in the public plan logs.
-      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
-      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
-      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
-      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
-      # Future group allow-list (BARE group emails → "group:" prefix in the stack).
-      # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
-      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS || '[]' }}
+      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
+      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
+      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
+      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
+      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
+      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
+      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -246,16 +243,13 @@ jobs:
       # public by design (ADR-0003), so these are normally absent.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
-      # action ::add-mask::es each email so it's also redacted in the public plan logs.
-      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
-      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
-      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
-      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
-      # Future group allow-list (BARE group emails → "group:" prefix in the stack).
-      # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
-      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS || '[]' }}
+      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
+      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
+      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
+      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
+      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
+      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
+      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -284,16 +278,13 @@ jobs:
       # empty ⇒ public (current default). No code change needed to flip it on.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
-      # action ::add-mask::es each email so it's also redacted in the public plan logs.
-      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
-      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
-      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
-      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
-      # Future group allow-list (BARE group emails → "group:" prefix in the stack).
-      # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
-      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS || '[]' }}
+      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
+      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
+      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
+      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
+      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
+      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
+      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -324,16 +315,13 @@ jobs:
       # Prod is IAP-gated and needs its custom OAuth client (no-org requirement).
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
-      # action ::add-mask::es each email so it's also redacted in the public plan logs.
-      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
-      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
-      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
-      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
-      # Future group allow-list (BARE group emails → "group:" prefix in the stack).
-      # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
-      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS || '[]' }}
+      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
+      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
+      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
+      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
+      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
+      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
+      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
