@@ -14,7 +14,7 @@ DEV_PORTS := 8080 5173
 # NOTE: ci-%/fix-% are deliberately NOT in .PHONY — GNU Make 3.81 (macOS default)
 # suppresses a pattern rule whose instances are listed as .PHONY ("Nothing to be
 # done"). They fire correctly without it since no real files of those names exist.
-.PHONY: help install dev clean-ports fix ci e2e
+.PHONY: help install dev clean clean-ports fix ci e2e
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_/-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -25,6 +25,10 @@ install: ## Install/sync deps in every subproject
 
 dev: ## Run the webapp locally: FastAPI :8080 + Vite :5173 (Ctrl-C stops both) — open http://localhost:5173
 	bun run --cwd frontend dev
+
+clean: ## Remove the local tmp/ scratch directory (gitignored scripts, logs, build artifacts)
+	rm -rf tmp
+	@echo "🧹 removed tmp/"
 
 clean-ports: ## Kill any stray processes holding the local dev ports (8080 backend, 5173 frontend)
 	@for p in $(DEV_PORTS); do \

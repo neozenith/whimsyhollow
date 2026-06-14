@@ -1,7 +1,8 @@
 # `webapp` stack
 
 A **scale-to-zero Cloud Run service protected by Identity-Aware Proxy (IAP)**,
-locked to a single Google identity (`joshpeak05@gmail.com` by default). Deploys
+locked to an allow-list supplied via the `IAP_MEMBERS` secret (empty by default —
+fail-closed: IAP on + no members ⇒ nobody admitted). Deploys
 into the single `whimsyhollow` project, where dev/test/prod are partitions and
 every env-scoped resource is namespaced with `-<env>` (`_<env>` for BigQuery).
 Each env has its own GCS state object
@@ -138,7 +139,7 @@ this stack yet — add it here, or extract a module, when the app's CD lands.)
 | Variable | Default | Notes |
 |---|---|---|
 | `enable_iap` | `null` | `null` = use per-env policy (dev/test off, prod on); set `true`/`false` to override one apply. |
-| `iap_members` | `["user:joshpeak05@gmail.com"]` | Who may pass IAP. Add `group:`/`user:` entries to share. |
+| `iap_members` | `[]` (set via `IAP_MEMBERS` secret) | Bare user emails who may pass IAP (stack adds `user:`). Empty ⇒ nobody. Groups: `iap_member_groups` / `IAP_MEMBER_GROUPS`. |
 | `container_image` | Google `hello` sample | Overridden by app CD (e.g. `…/whimsyhollow:v2`). |
 | `repository_id` | `whimsyhollow` | Artifact Registry repo for the image. |
 | `max_instances` | `2` | Min is pinned to 0 (scale to zero). |

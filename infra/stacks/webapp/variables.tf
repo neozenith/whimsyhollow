@@ -114,15 +114,28 @@ variable "iap_oauth_client_secret" {
 
 variable "iap_members" {
   description = <<-EOT
-    Principals allowed THROUGH IAP (granted roles/iap.httpsResourceAccessor).
-    Locked to a single Google identity by default. Each entry is a full IAM member
-    string, e.g. "user:someone@example.com" or "group:team@example.com".
+    BARE user email addresses allowed THROUGH IAP — each is prefixed with "user:" in
+    code (see local.iap_principals), so supply e.g. ["someone@example.com"]. Sensitive:
+    provide via the per-environment GitHub SECRET IAP_MEMBERS (a JSON array of emails)
+    so the allow-list stays out of the public repo AND out of the public plan logs.
+
+    Defaults to [] — no email is baked into this public repo. An empty allow-list is
+    FAIL-CLOSED: when IAP is enabled but no members are supplied, zero accessor bindings
+    are created, so nobody is admitted (safe, not open). Set the secret on any env where
+    IAP is on, or you'll lock yourself out.
   EOT
   type        = list(string)
-  default     = ["user:joshpeak05@gmail.com"]
+  default     = []
+  sensitive   = true
+}
 
-  validation {
-    condition     = length(var.iap_members) > 0
-    error_message = "iap_members must list at least one principal, otherwise nobody can reach the service."
-  }
+variable "iap_member_groups" {
+  description = <<-EOT
+    BARE Google Group email addresses allowed THROUGH IAP — each is prefixed with
+    "group:" in code. Empty by default; when you start using groups, supply via a
+    per-environment GitHub secret IAP_MEMBER_GROUPS (a JSON array of group emails).
+  EOT
+  type        = list(string)
+  default     = []
+  sensitive   = true
 }
