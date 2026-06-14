@@ -4,6 +4,10 @@ A scale-to-zero Cloud Run web app — a plain **FastAPI** backend serving a **Re
 SPA — deployed to a **single GCP project (`whimsyhollow`)** with `dev` / `test` / `prod`
 partitioned *within* that one project.
 
+- https://whimsyhollow-prod-mga276be5q-ts.a.run.app 
+- https://whimsyhollow-test-mga276be5q-ts.a.run.app 
+- https://whimsyhollow-dev-mga276be5q-ts.a.run.app 
+
 ## Layout
 
 ```

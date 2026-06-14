@@ -41,11 +41,12 @@ resource "google_iap_settings" "webapp" {
   }
 }
 
-# The actual allow-list: only these principals may pass through IAP. Defaults to
-# joshpeak05@gmail.com only (see var.iap_members). This is the outer hop — it
-# governs who the human-facing IAP layer will admit.
+# The actual allow-list: only these principals may pass through IAP (see
+# local.iap_principals, built from var.iap_members + var.iap_member_groups). This is
+# the outer hop — it governs who the human-facing IAP layer will admit. Empty list ⇒
+# no bindings ⇒ fail-closed (nobody admitted).
 resource "google_iap_web_cloud_run_service_iam_member" "accessors" {
-  for_each = local.iap_enabled ? toset(var.iap_members) : toset([])
+  for_each = local.iap_enabled ? toset(local.iap_principals) : toset([])
 
   project                = local.project_id
   location               = google_cloud_run_v2_service.app.location

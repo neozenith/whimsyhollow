@@ -25,6 +25,15 @@ locals {
   # prod has the secret so IAP is on; test flips on the moment its secret is added.
   # var.enable_iap (default null) can still force a value for a one-off apply.
   iap_enabled = var.enable_iap != null ? var.enable_iap : (var.iap_oauth_client_id != "")
+
+  # The full IAM member strings granted iap.httpsResourceAccessor — bare emails from
+  # the (sensitive) input vars get their principal prefix here, so the GitHub secrets
+  # can carry plain emails. Derived from sensitive vars ⇒ this local is sensitive too,
+  # which keeps the allow-list redacted in plan output (public Action logs).
+  iap_principals = concat(
+    [for e in var.iap_members : "user:${e}"],
+    [for g in var.iap_member_groups : "group:${g}"],
+  )
 }
 
 data "google_project" "this" {}

@@ -114,15 +114,27 @@ variable "iap_oauth_client_secret" {
 
 variable "iap_members" {
   description = <<-EOT
-    Principals allowed THROUGH IAP (granted roles/iap.httpsResourceAccessor).
-    Locked to a single Google identity by default. Each entry is a full IAM member
-    string, e.g. "user:someone@example.com" or "group:team@example.com".
+    BARE user email addresses allowed THROUGH IAP — each is prefixed with "user:" in
+    code (see local.iap_principals), so supply e.g. ["someone@example.com"]. Provide via
+    the per-environment GitHub SECRET IAP_MEMBERS (a JSON array of emails) so the list
+    stays out of the public repo; the CI composite action additionally ::add-mask::es
+    each email so it's redacted in the public plan logs too.
+
+    NOT marked terraform-`sensitive`: a sensitive var supplied via TF_VAR_ trips
+    Terraform's plan/apply consistency check (esp. when empty) — masking is done in CI
+    instead. Defaults to [] — no email baked into this public repo. Empty is FAIL-CLOSED:
+    IAP on + no members ⇒ zero accessor bindings ⇒ nobody admitted (safe, not open).
   EOT
   type        = list(string)
-  default     = ["user:joshpeak05@gmail.com"]
+  default     = []
+}
 
-  validation {
-    condition     = length(var.iap_members) > 0
-    error_message = "iap_members must list at least one principal, otherwise nobody can reach the service."
-  }
+variable "iap_member_groups" {
+  description = <<-EOT
+    BARE Google Group email addresses allowed THROUGH IAP — each is prefixed with
+    "group:" in code. Empty by default; when you start using groups, supply via a
+    per-environment GitHub secret IAP_MEMBER_GROUPS (a JSON array of group emails).
+  EOT
+  type        = list(string)
+  default     = []
 }

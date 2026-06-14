@@ -57,7 +57,7 @@ invokes Cloud Run.
 
 ```mermaid
 flowchart LR
-    user["You<br/>joshpeak05@gmail.com<br/>(var.iap_members)"]:::ingress
+    user["Authorized user<br/>(IAP_MEMBERS secret)"]:::ingress
     iap["Identity-Aware Proxy"]:::compute
     agent["IAP service agent<br/>service-NUM@gcp-sa-iap"]:::compute
     run["Cloud Run<br/>whimsyhollow-&lt;env&gt; (min=0)"]:::data
