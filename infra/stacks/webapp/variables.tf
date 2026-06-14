@@ -115,18 +115,18 @@ variable "iap_oauth_client_secret" {
 variable "iap_members" {
   description = <<-EOT
     BARE user email addresses allowed THROUGH IAP — each is prefixed with "user:" in
-    code (see local.iap_principals), so supply e.g. ["someone@example.com"]. Sensitive:
-    provide via the per-environment GitHub SECRET IAP_MEMBERS (a JSON array of emails)
-    so the allow-list stays out of the public repo AND out of the public plan logs.
+    code (see local.iap_principals), so supply e.g. ["someone@example.com"]. Provide via
+    the per-environment GitHub SECRET IAP_MEMBERS (a JSON array of emails) so the list
+    stays out of the public repo; the CI composite action additionally ::add-mask::es
+    each email so it's redacted in the public plan logs too.
 
-    Defaults to [] — no email is baked into this public repo. An empty allow-list is
-    FAIL-CLOSED: when IAP is enabled but no members are supplied, zero accessor bindings
-    are created, so nobody is admitted (safe, not open). Set the secret on any env where
-    IAP is on, or you'll lock yourself out.
+    NOT marked terraform-`sensitive`: a sensitive var supplied via TF_VAR_ trips
+    Terraform's plan/apply consistency check (esp. when empty) — masking is done in CI
+    instead. Defaults to [] — no email baked into this public repo. Empty is FAIL-CLOSED:
+    IAP on + no members ⇒ zero accessor bindings ⇒ nobody admitted (safe, not open).
   EOT
   type        = list(string)
   default     = []
-  sensitive   = true
 }
 
 variable "iap_member_groups" {
@@ -137,5 +137,4 @@ variable "iap_member_groups" {
   EOT
   type        = list(string)
   default     = []
-  sensitive   = true
 }

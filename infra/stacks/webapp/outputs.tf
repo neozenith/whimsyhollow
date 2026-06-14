@@ -34,7 +34,6 @@ output "iap_service_agent" {
 output "iap_members" {
   description = "Principals (user:/group:) allowed through IAP (only meaningful when iap_enabled = true)."
   value       = local.iap_enabled ? local.iap_principals : []
-  sensitive   = true # derived from the sensitive iap_members/iap_member_groups inputs
 }
 
 output "image_base" {

@@ -107,10 +107,11 @@ jobs:
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
       # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. A secret (not a var) so the list stays out of the public
-      # Action logs. `|| '[]'` is load-bearing: iap_members is a list, so an unset secret
-      # would inject an empty STRING and fail HCL list parsing — `[]` is a valid empty
-      # list (fail-closed: IAP on + no members ⇒ nobody admitted).
+      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
+      # action ::add-mask::es each email so it's also redacted in the public plan logs.
+      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
+      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
+      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
       TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
       # Future group allow-list (BARE group emails → "group:" prefix in the stack).
       # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
@@ -246,10 +247,11 @@ jobs:
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
       # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. A secret (not a var) so the list stays out of the public
-      # Action logs. `|| '[]'` is load-bearing: iap_members is a list, so an unset secret
-      # would inject an empty STRING and fail HCL list parsing — `[]` is a valid empty
-      # list (fail-closed: IAP on + no members ⇒ nobody admitted).
+      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
+      # action ::add-mask::es each email so it's also redacted in the public plan logs.
+      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
+      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
+      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
       TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
       # Future group allow-list (BARE group emails → "group:" prefix in the stack).
       # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
@@ -283,10 +285,11 @@ jobs:
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
       # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. A secret (not a var) so the list stays out of the public
-      # Action logs. `|| '[]'` is load-bearing: iap_members is a list, so an unset secret
-      # would inject an empty STRING and fail HCL list parsing — `[]` is a valid empty
-      # list (fail-closed: IAP on + no members ⇒ nobody admitted).
+      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
+      # action ::add-mask::es each email so it's also redacted in the public plan logs.
+      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
+      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
+      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
       TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
       # Future group allow-list (BARE group emails → "group:" prefix in the stack).
       # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.
@@ -322,10 +325,11 @@ jobs:
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
       # IAP allow-list — a SECRET (JSON array of BARE emails, e.g. "a@x.com"); the stack
-      # adds the "user:" prefix. A secret (not a var) so the list stays out of the public
-      # Action logs. `|| '[]'` is load-bearing: iap_members is a list, so an unset secret
-      # would inject an empty STRING and fail HCL list parsing — `[]` is a valid empty
-      # list (fail-closed: IAP on + no members ⇒ nobody admitted).
+      # adds the "user:" prefix. Kept out of the repo by being a secret; the composite
+      # action ::add-mask::es each email so it's also redacted in the public plan logs.
+      # `|| '[]'` is load-bearing: an unset secret would inject an empty STRING and fail
+      # HCL list parsing — `[]` is a valid empty list (fail-closed: IAP on + no members
+      # ⇒ nobody admitted). Not terraform-`sensitive` (that breaks TF_VAR_ supply).
       TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS || '[]' }}
       # Future group allow-list (BARE group emails → "group:" prefix in the stack).
       # Empty until you create the IAP_MEMBER_GROUPS secret; no workflow change needed then.

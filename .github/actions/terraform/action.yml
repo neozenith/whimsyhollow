@@ -45,6 +45,17 @@ inputs:
 runs:
   using: composite
   steps:
+    # Redact the IAP allow-list from this (public) job's logs. The list isn't marked
+    # terraform-`sensitive` (that breaks TF_VAR_ supply), so instead we ::add-mask::
+    # each email up front — every later terraform plan/apply line prints "user:***"
+    # rather than the real address. Reads the TF_VAR_ values already in the job env.
+    - name: Mask IAP member emails in logs
+      shell: bash
+      run: |
+        emails=$(printf '%s\n%s\n' "${TF_VAR_iap_members:-}" "${TF_VAR_iap_member_groups:-}" \
+          | grep -oiE '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}' | sort -u || true)
+        for e in $emails; do echo "::add-mask::$e"; done
+
     - id: auth
       uses: google-github-actions/auth@v3
       with:
