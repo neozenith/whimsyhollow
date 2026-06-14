@@ -55,16 +55,29 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
-    # Build + push the application image into the env's Artifact Registry, so the
-    # apply deploys real code (terraform reads the tag via TF_VAR_container_image).
     - if: inputs.build_context != ''
       uses: google-github-actions/setup-gcloud@v3
 
+    # Init BEFORE building, so the next step can pre-create the Artifact Registry repo
+    # the image push targets.
+    - shell: bash
+      run: terraform -chdir=infra/stacks/${{ inputs.stack }} init -backend-config=./backends/${{ inputs.env }}.config -reconfigure
+
+    # Chicken-and-egg fix: on a first (or renamed) deploy the env's Artifact Registry
+    # repo doesn't exist yet, so `gcloud builds submit` would fail to push. Pre-create
+    # JUST the repo (+ its API enable) with a targeted apply before the build. Only on
+    # apply-with-build (plan never mutates); idempotent on re-runs.
+    - if: inputs.action == 'apply' && inputs.build_context != ''
+      name: Pre-create Artifact Registry repo (targeted apply)
+      shell: bash
+      run: terraform -chdir=infra/stacks/${{ inputs.stack }} apply -input=false -auto-approve -var environment=${{ inputs.env }} -target=google_artifact_registry_repository.app
+
+    # Build + push the application image into the env's Artifact Registry, so the
+    # apply deploys real code (terraform reads the tag via TF_VAR_container_image).
     - if: inputs.build_context != ''
       name: Build & push image (${{ inputs.build_image }})
       shell: bash
-      # Repo-root context + the service's cloudbuild.yaml, so a shared lib
-      # (libs/core) is in the Docker context. build_context = the service dir.
+      # Repo-root context + the service's cloudbuild.yaml so the frontend is in scope.
       run: |
         gcloud builds submit . \
           --project "whimsyhollow" \
@@ -79,9 +92,6 @@ runs:
           --project "whimsyhollow" \
           --config "${{ inputs.agent_build_context }}/cloudbuild.yaml" \
           --substitutions=_IMAGE="${{ inputs.agent_build_image }}"
-
-    - shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} init -backend-config=./backends/${{ inputs.env }}.config -reconfigure
 
     - if: inputs.action == 'plan'
       shell: bash
