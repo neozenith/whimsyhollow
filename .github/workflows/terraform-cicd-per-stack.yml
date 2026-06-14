@@ -106,13 +106,13 @@ jobs:
       # prod plan from showing google_iap_settings as removed.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
-      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
-      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
-      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
-      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
-      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
-      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
+      # IAP allow-list SECRETS — JSON-array STRINGS of bare emails (the stack jsondecodes
+      # them and adds user:/group:). Passed straight as TF_VAR_: STRING vars round-trip
+      # cleanly through terraform's plan/apply, unlike LIST vars (which trip "Can't change
+      # variable when applying a saved plan"). Empty/unset ⇒ "" ⇒ fail-closed (IAP on + no
+      # members = nobody). The composite action ::add-mask::es each email in the logs.
+      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS }}
+      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -243,13 +243,13 @@ jobs:
       # public by design (ADR-0003), so these are normally absent.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
-      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
-      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
-      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
-      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
-      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
-      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
+      # IAP allow-list SECRETS — JSON-array STRINGS of bare emails (the stack jsondecodes
+      # them and adds user:/group:). Passed straight as TF_VAR_: STRING vars round-trip
+      # cleanly through terraform's plan/apply, unlike LIST vars (which trip "Can't change
+      # variable when applying a saved plan"). Empty/unset ⇒ "" ⇒ fail-closed (IAP on + no
+      # members = nobody). The composite action ::add-mask::es each email in the logs.
+      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS }}
+      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -278,13 +278,13 @@ jobs:
       # empty ⇒ public (current default). No code change needed to flip it on.
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
-      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
-      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
-      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
-      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
-      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
-      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
+      # IAP allow-list SECRETS — JSON-array STRINGS of bare emails (the stack jsondecodes
+      # them and adds user:/group:). Passed straight as TF_VAR_: STRING vars round-trip
+      # cleanly through terraform's plan/apply, unlike LIST vars (which trip "Can't change
+      # variable when applying a saved plan"). Empty/unset ⇒ "" ⇒ fail-closed (IAP on + no
+      # members = nobody). The composite action ::add-mask::es each email in the logs.
+      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS }}
+      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
@@ -315,13 +315,13 @@ jobs:
       # Prod is IAP-gated and needs its custom OAuth client (no-org requirement).
       TF_VAR_iap_oauth_client_id: ${{ secrets.IAP_OAUTH_CLIENT_ID }}
       TF_VAR_iap_oauth_client_secret: ${{ secrets.IAP_OAUTH_CLIENT_SECRET }}
-      # IAP allow-list SECRETS (JSON arrays of BARE emails; the stack adds user:/group:).
-      # Passed as PLAIN env (not TF_VAR_): the composite action masks the emails in the
-      # logs and exports TF_VAR_* ONLY when non-empty. An empty list via TF_VAR_ trips
-      # terraform's plan/apply consistency check; leaving it unset ⇒ terraform default []
-      # ⇒ fail-closed (IAP on + no members = nobody admitted). dev has no secret → public.
-      IAP_MEMBERS: ${{ secrets.IAP_MEMBERS }}
-      IAP_MEMBER_GROUPS: ${{ secrets.IAP_MEMBER_GROUPS }}
+      # IAP allow-list SECRETS — JSON-array STRINGS of bare emails (the stack jsondecodes
+      # them and adds user:/group:). Passed straight as TF_VAR_: STRING vars round-trip
+      # cleanly through terraform's plan/apply, unlike LIST vars (which trip "Can't change
+      # variable when applying a saved plan"). Empty/unset ⇒ "" ⇒ fail-closed (IAP on + no
+      # members = nobody). The composite action ::add-mask::es each email in the logs.
+      TF_VAR_iap_members: ${{ secrets.IAP_MEMBERS }}
+      TF_VAR_iap_member_groups: ${{ secrets.IAP_MEMBER_GROUPS }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/terraform
