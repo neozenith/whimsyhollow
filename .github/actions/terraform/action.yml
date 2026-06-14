@@ -75,29 +75,29 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
-    - if: inputs.build_context != ''
-      uses: google-github-actions/setup-gcloud@v3
+    # gcloud: tfs's project guardrail (check_project) + the image builds need it.
+    - uses: google-github-actions/setup-gcloud@v3
 
-    # Init BEFORE building, so the next step can pre-create the Artifact Registry repo
-    # the image push targets.
-    - shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} init -backend-config=./backends/${{ inputs.env }}.config -reconfigure
+    # uv: runs the curated `tfs` CLI.
+    - uses: astral-sh/setup-uv@v8.1.0
+      with:
+        enable-cache: true
+        cache-dependency-glob: "infra/tfs/uv.lock"
 
-    # Chicken-and-egg fix: on a first (or renamed) deploy the env's Artifact Registry
-    # repo doesn't exist yet, so `gcloud builds submit` would fail to push. Pre-create
-    # JUST the repo (+ its API enable) with a targeted apply before the build. Only on
-    # apply-with-build (plan never mutates); idempotent on re-runs.
-    - if: inputs.action == 'apply' && inputs.build_context != ''
-      name: Pre-create Artifact Registry repo (targeted apply)
+    # Everything below drives terraform through the curated `tfs` CLI — the single,
+    # opinionated deploy interface. `tfs plan` and `tfs apply` use IDENTICAL flags
+    # (a direct apply: no saved plan, no -target), so plan and apply never diverge and
+    # TF_VAR_* is supplied consistently. The Artifact Registry repo is created up front
+    # by infra/bootstrap, so there is no build-vs-terraform chicken-and-egg here.
+    - name: tfs init
       shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} apply -input=false -auto-approve -var environment=${{ inputs.env }} -target=google_artifact_registry_repository.app
+      run: uv run --frozen --directory infra/tfs tfs init ${{ inputs.stack }} ${{ inputs.env }}
 
-    # Build + push the application image into the env's Artifact Registry, so the
-    # apply deploys real code (terraform reads the tag via TF_VAR_container_image).
+    # Build + push the app image into the env's (already-existing) Artifact Registry
+    # repo. terraform reads the tag via TF_VAR_container_image at apply time.
     - if: inputs.build_context != ''
       name: Build & push image (${{ inputs.build_image }})
       shell: bash
-      # Repo-root context + the service's cloudbuild.yaml so the frontend is in scope.
       run: |
         gcloud builds submit . \
           --project "whimsyhollow" \
@@ -114,16 +114,11 @@ runs:
           --substitutions=_IMAGE="${{ inputs.agent_build_image }}"
 
     - if: inputs.action == 'plan'
+      name: tfs plan
       shell: bash
-      run: |
-        terraform -chdir=infra/stacks/${{ inputs.stack }} validate
-        terraform -chdir=infra/stacks/${{ inputs.stack }} plan -input=false -no-color -var environment=${{ inputs.env }}
+      run: uv run --frozen --directory infra/tfs tfs plan ${{ inputs.stack }} ${{ inputs.env }}
 
-    # Direct apply (plan-and-apply in one atomic run). We intentionally do NOT use a
-    # saved plan (`plan -out` then `apply tfplan`): Terraform forbids re-supplying a
-    # `sensitive` variable (iap_members/iap_member_groups, passed via TF_VAR_) when
-    # applying a saved plan. The separate `plan` job already shows the plan for review.
     - if: inputs.action == 'apply'
-      name: terraform apply
+      name: tfs apply
       shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} apply -input=false -no-color -auto-approve -var environment=${{ inputs.env }}
+      run: uv run --frozen --directory infra/tfs tfs apply ${{ inputs.stack }} ${{ inputs.env }}

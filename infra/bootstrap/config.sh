@@ -18,6 +18,10 @@ PROJECT_ID="${PROJECT_ID:-whimsyhollow}"
 # GCS location for the single Terraform state bucket.
 TF_STATE_LOCATION="${TF_STATE_LOCATION:-australia-southeast1}"
 
+# Region for regional resources (Artifact Registry repos, Cloud Run). Must match
+# var.region in the webapp stack.
+REGION="${REGION:-australia-southeast1}"
+
 # The single tfstate bucket. dev/test/prod state is partitioned WITHIN it by the
 # GCS prefix terraform/state/<env>/<stack> (see infra/config.yml + backends/*.config).
 TF_STATE_BUCKET="${TF_STATE_BUCKET:-whimsyhollow-tfstate}"
