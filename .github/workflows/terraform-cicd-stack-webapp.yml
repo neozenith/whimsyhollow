@@ -50,11 +50,9 @@ jobs:
     uses: ./.github/workflows/terraform-cicd-per-stack.yml
     with:
       stack: webapp
-      # SMOKE-TEST: no application image is built — this repo has no backend/ or
-      # agent/ code yet, so the stack deploys Google's `hello` sample to prove the
-      # infra works end-to-end. Restore these inputs once the app code + cloudbuild
-      # files exist:
-      #   build_context: backend
-      #   image_name: agentic-webapp
-      #   agent_build_context: agent
+      # The backend image bundles the built React SPA (see backend/Dockerfile) and is
+      # the single container the plain app runs — no agent sidecar (it stays disabled
+      # in cloudrun.tf). CI builds backend/ and deploys it.
+      build_context: backend
+      image_name: whimsyhollow
     secrets: inherit

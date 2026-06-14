@@ -1,6 +1,6 @@
 # Firestore (Native) database backing durable ADK sessions + (by default) asset
 # metadata and LLM bookkeeping. A NAMED database (not "(default)"), env-namespaced
-# (local.firestore_name = "agentic-webapp-<env>") so the three environments each get
+# (local.firestore_name = "whimsyhollow-<env>") so the three environments each get
 # an independent named database in the one whimsyhollow project — named databases are
 # independent and each carries its own location.
 resource "google_firestore_database" "app" {

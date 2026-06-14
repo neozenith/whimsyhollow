@@ -1,6 +1,6 @@
 # Authentication & Authorization
 
-How identities are established and what they may touch in the **agentic-webapp**
+How identities are established and what they may touch in the **whimsyhollow**
 infra. Two distinct principals, both authenticating with **zero long-lived
 keyfiles**:
 
@@ -60,7 +60,7 @@ flowchart LR
     user["You<br/>joshpeak05@gmail.com<br/>(var.iap_members)"]:::ingress
     iap["Identity-Aware Proxy"]:::compute
     agent["IAP service agent<br/>service-NUM@gcp-sa-iap"]:::compute
-    run["Cloud Run<br/>agentic-webapp-&lt;env&gt; (min=0)"]:::data
+    run["Cloud Run<br/>whimsyhollow-&lt;env&gt; (min=0)"]:::data
     app["Container<br/>(runs as runtime SA)"]:::data
 
     user -->|"roles/iap.httpsResourceAccessor"| iap

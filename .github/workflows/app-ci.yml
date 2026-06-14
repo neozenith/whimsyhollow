@@ -1,0 +1,62 @@
+name: App CI
+
+# Per-subproject QA gates for the application code (backend + frontend) plus the
+# Playwright e2e suite. Distinct from the Terraform pipeline (terraform-cicd-*.yml).
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "e2e/**"
+      - "Makefile"
+      - ".github/workflows/app-ci.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: ci backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+      - run: make -C backend install
+      - run: make -C backend ci
+
+  frontend:
+    name: ci frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: make -C frontend install
+      - run: make -C frontend ci
+
+  e2e:
+    name: e2e (playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+      - uses: oven-sh/setup-bun@v2
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - run: make -C backend install
+      - run: make -C frontend install
+      - run: make -C e2e install
+      # playwright.config webServer boots backend (:8080) + frontend (:5173).
+      - run: make -C e2e test
