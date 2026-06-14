@@ -1,10 +1,10 @@
 # Dedicated BigQuery dataset + tables the webapp interfaces against. Env-namespaced
-# (local.bq_dataset_id = "agentic_webapp_<env>", underscores per BQ id rules) so the
+# (local.bq_dataset_id = "whimsyhollow_<env>", underscores per BQ id rules) so the
 # three environments get distinct datasets in the one project.
 resource "google_bigquery_dataset" "app" {
   dataset_id  = local.bq_dataset_id
   location    = var.region
-  description = "agentic-webapp application data (${var.environment})."
+  description = "whimsyhollow application data (${var.environment})."
 
   # Allow non-prod datasets (and their tables) to be torn down with the stack.
   delete_contents_on_destroy = var.environment != "prod"

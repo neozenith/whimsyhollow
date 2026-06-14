@@ -126,7 +126,7 @@ deployable immediately. Point it at a real image once you have one:
 
 ```sh
 terraform -chdir=stacks/webapp apply -var environment=dev \
-  -var container_image=australia-southeast1-docker.pkg.dev/whimsyhollow/agentic-webapp-dev/agentic-webapp-dev:<tag>
+  -var container_image=australia-southeast1-docker.pkg.dev/whimsyhollow/whimsyhollow-dev/whimsyhollow-dev:<tag>
 ```
 
 In CI, the application's own build/deploy pipeline passes `-var container_image`.
@@ -139,10 +139,10 @@ this stack yet — add it here, or extract a module, when the app's CD lands.)
 |---|---|---|
 | `enable_iap` | `null` | `null` = use per-env policy (dev/test off, prod on); set `true`/`false` to override one apply. |
 | `iap_members` | `["user:joshpeak05@gmail.com"]` | Who may pass IAP. Add `group:`/`user:` entries to share. |
-| `container_image` | Google `hello` sample | Overridden by app CD (e.g. `…/agentic-webapp:v2`). |
-| `repository_id` | `agentic-webapp` | Artifact Registry repo for the image. |
+| `container_image` | Google `hello` sample | Overridden by app CD (e.g. `…/whimsyhollow:v2`). |
+| `repository_id` | `whimsyhollow` | Artifact Registry repo for the image. |
 | `max_instances` | `2` | Min is pinned to 0 (scale to zero). |
-| `service_name` | `agentic-webapp` | Cloud Run service name. |
+| `service_name` | `whimsyhollow` | Cloud Run service name. |
 | `region` | `australia-southeast1` | Cloud Run location. |
 
 > Health endpoint is **`/health`**, not `/healthz` — Google's frontend reserves

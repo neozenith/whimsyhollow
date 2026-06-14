@@ -17,13 +17,13 @@ variable "region" {
 variable "service_name" {
   description = "Cloud Run service name."
   type        = string
-  default     = "agentic-webapp"
+  default     = "whimsyhollow"
 }
 
 variable "repository_id" {
   description = "Artifact Registry repository ID for the app image."
   type        = string
-  default     = "agentic-webapp"
+  default     = "whimsyhollow"
 }
 
 variable "agent_image" {

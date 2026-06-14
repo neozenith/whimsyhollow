@@ -1,7 +1,7 @@
 [project]
 name = "tfs"
 version = "0.1.0"
-description = "Terraform stack lifecycle CLI for the agentic-webapp infra/ (stacks + modules layout, GCS backend)."
+description = "Terraform stack lifecycle CLI for the whimsyhollow infra/ (stacks + modules layout, GCS backend)."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

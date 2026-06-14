@@ -1,0 +1,14 @@
+{
+  "name": "whimsyhollow-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end smoke suite — boots the FastAPI backend + Vite frontend and proves the app shell loads and its theme/brand/navigation controls work.",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report",
+    "install-browser": "playwright install chromium webkit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

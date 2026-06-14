@@ -1,6 +1,6 @@
 # `infra/` — Terraform (stacks + modules)
 
-Terraform for the **agentic-webapp**, organised as **independently-deployed
+Terraform for the **whimsyhollow**, organised as **independently-deployed
 stacks** (each with its own GCS state) composed from **reusable modules**. The
 same `*.tf` in a stack plan/apply against the **single `whimsyhollow` GCP
 project**, where dev/test/prod are **partitions within that one project**
@@ -85,12 +85,12 @@ All three environments share the one `whimsyhollow` project, so isolation is by
 
 | Resource | Name | Local |
 |---|---|---|
-| Cloud Run service | `agentic-webapp-<env>` | `name` |
-| Runtime SA | `agentic-webapp-run-<env>` | `runtime_sa_id` |
-| Artifact Registry repo | `agentic-webapp-<env>` | `repository_id` |
-| GCS assets bucket | `whimsyhollow-agentic-webapp-assets-<env>` | `assets_bucket` |
-| BigQuery dataset | `agentic_webapp_<env>` | `bq_dataset_id` |
-| Firestore named DB | `agentic-webapp-<env>` | `firestore_name` |
+| Cloud Run service | `whimsyhollow-<env>` | `name` |
+| Runtime SA | `whimsyhollow-run-<env>` | `runtime_sa_id` |
+| Artifact Registry repo | `whimsyhollow-<env>` | `repository_id` |
+| GCS assets bucket | `whimsyhollow-whimsyhollow-assets-<env>` | `assets_bucket` |
+| BigQuery dataset | `whimsyhollow_<env>` | `bq_dataset_id` |
+| Firestore named DB | `whimsyhollow-<env>` | `firestore_name` |
 
 **Project-level resources are co-owned by all three env state files.** The
 `google_project_service` API enables and the project-level IAM

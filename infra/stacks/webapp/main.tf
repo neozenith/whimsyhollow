@@ -11,12 +11,12 @@ locals {
   # source of those names; each resource references them instead of the bare
   # var.* base names. (Source relied on project isolation for uniqueness; this
   # repo relies on name isolation.)
-  name           = "${var.service_name}-${var.environment}"                            # agentic-webapp-dev
-  runtime_sa_id  = "${var.service_name}-run-${var.environment}"                        # agentic-webapp-run-dev (<=30 chars)
-  repository_id  = "${var.repository_id}-${var.environment}"                           # agentic-webapp-dev
-  assets_bucket  = "${local.project_id}-${var.service_name}-assets-${var.environment}" # whimsyhollow-agentic-webapp-assets-dev
-  bq_dataset_id  = "${replace(var.service_name, "-", "_")}_${var.environment}"         # agentic_webapp_dev (BQ ids use underscores)
-  firestore_name = "${var.service_name}-${var.environment}"                            # agentic-webapp-dev
+  name           = "${var.service_name}-${var.environment}"                    # whimsyhollow-dev
+  runtime_sa_id  = "${var.service_name}-run-${var.environment}"                # whimsyhollow-run-dev (<=30 chars)
+  repository_id  = "${var.repository_id}-${var.environment}"                   # whimsyhollow-dev
+  assets_bucket  = "${local.project_id}-assets-${var.environment}"             # whimsyhollow-assets-dev (project_id == app name)
+  bq_dataset_id  = "${replace(var.service_name, "-", "_")}_${var.environment}" # whimsyhollow_dev (BQ ids use underscores)
+  firestore_name = "${var.service_name}-${var.environment}"                    # whimsyhollow-dev
 
   # IAP is enabled when a custom OAuth client is supplied — no-org projects require
   # one (ADR-0002), so its presence IS the on/off switch. In CI the client comes
