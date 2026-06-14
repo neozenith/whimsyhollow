@@ -1,0 +1,10 @@
+# Prod inputs template. Copy to `prod.tfvars` (GITIGNORED) and fill in.
+# Auto-loaded by `tfs apply webapp prod`. NEVER commit the real prod.tfvars — it
+# carries the IAP OAuth client secret.
+container_image = "australia-southeast1-docker.pkg.dev/whimsyhollow/agentic-webapp-prod/agentic-webapp-prod:v1"
+
+# Custom OAuth client for IAP (REQUIRED for no-org projects — IAP returns HTTP 502
+# without it). Create it manually in the Console (APIs & Services → Credentials →
+# Create OAuth client ID → Web application), then paste id + secret here.
+iap_oauth_client_id     = ""
+iap_oauth_client_secret = ""

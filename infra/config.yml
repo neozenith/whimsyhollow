@@ -1,0 +1,25 @@
+# Single-project config consumed by the `tfs` CLI (infra/tfs/) when it scaffolds a
+# NEW stack's backend configs (one stacks/<stack>/backends/<env>.config per env).
+#
+# DIVERGENCE FROM THE MULTI-PROJECT SCAFFOLD LINEAGE: everything here deploys into
+# ONE GCP project (whimsyhollow). dev/test/prod are NOT separate projects — they
+# are partitions WITHIN that single project, isolated two independent ways:
+#
+#   1. STATE — one tfstate bucket, partitioned by GCS PREFIX. The environment is
+#      part of the prefix (terraform/state/<env>/<stack>), not the bucket. This is
+#      what "partitions dev/test/prod state into the one bucket".
+#   2. RESOURCES — every env-scoped resource is namespaced with `-<env>` (or
+#      `_<env>` for BigQuery) so the three environments never collide in the shared
+#      project space (see stacks/webapp/main.tf locals).
+#
+# State layout convention (uniform for EVERY stack + env):
+#   bucket = "<state_bucket>"                       # the single project tfstate bucket
+#   prefix = "terraform/state/<env>/<stack_name>"   # env + stack isolation within it
+
+project_id: whimsyhollow
+state_bucket: whimsyhollow-tfstate
+state_location: australia-southeast1
+environments:
+  - dev
+  - test
+  - prod

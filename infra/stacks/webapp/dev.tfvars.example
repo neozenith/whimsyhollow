@@ -1,0 +1,12 @@
+# Dev inputs template. Copy to `dev.tfvars` (GITIGNORED) and fill in.
+# Auto-loaded by `tfs apply webapp dev`.
+#
+# Image path layout in the single project: the Artifact Registry repo AND image
+# are both env-namespaced (see infra/stacks/webapp/artifact_registry.tf):
+#   <region>-docker.pkg.dev/whimsyhollow/agentic-webapp-dev/agentic-webapp-dev:<tag>
+container_image = "australia-southeast1-docker.pkg.dev/whimsyhollow/agentic-webapp-dev/agentic-webapp-dev:v1"
+
+# Custom OAuth client for IAP (required for no-org projects). Presence of a client
+# id is the IAP on/off switch. dev is public by design — leave empty.
+iap_oauth_client_id     = ""
+iap_oauth_client_secret = ""

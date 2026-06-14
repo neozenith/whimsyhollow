@@ -1,0 +1,8 @@
+# Test inputs template. Copy to `test.tfvars` (GITIGNORED) and fill in.
+# Auto-loaded by `tfs apply webapp test`.
+container_image = "australia-southeast1-docker.pkg.dev/whimsyhollow/agentic-webapp-test/agentic-webapp-test:v1"
+
+# Custom OAuth client for IAP. Empty ⇒ public; add the client id/secret to flip IAP
+# on for test (no code/infra change needed).
+iap_oauth_client_id     = ""
+iap_oauth_client_secret = ""
