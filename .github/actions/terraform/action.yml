@@ -99,16 +99,11 @@ runs:
         terraform -chdir=infra/stacks/${{ inputs.stack }} validate
         terraform -chdir=infra/stacks/${{ inputs.stack }} plan -input=false -no-color -var environment=${{ inputs.env }}
 
-    # Atomic plan-then-apply: if the plan step errors (bash -e), the apply
-    # step won't run because the prior step failed. The on-disk tfplan also
-    # guarantees apply executes exactly what plan showed — no drift between
-    # the two operations.
+    # Direct apply (plan-and-apply in one atomic run). We intentionally do NOT use a
+    # saved plan (`plan -out` then `apply tfplan`): Terraform forbids re-supplying a
+    # `sensitive` variable (iap_members/iap_member_groups, passed via TF_VAR_) when
+    # applying a saved plan. The separate `plan` job already shows the plan for review.
     - if: inputs.action == 'apply'
-      name: terraform plan -out=tfplan
+      name: terraform apply
       shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} plan -input=false -no-color -out=tfplan -var environment=${{ inputs.env }}
-
-    - if: inputs.action == 'apply'
-      name: terraform apply tfplan
-      shell: bash
-      run: terraform -chdir=infra/stacks/${{ inputs.stack }} apply -input=false -auto-approve tfplan
+      run: terraform -chdir=infra/stacks/${{ inputs.stack }} apply -input=false -no-color -auto-approve -var environment=${{ inputs.env }}
