@@ -114,27 +114,28 @@ variable "iap_oauth_client_secret" {
 
 variable "iap_members" {
   description = <<-EOT
-    BARE user email addresses allowed THROUGH IAP — each is prefixed with "user:" in
-    code (see local.iap_principals), so supply e.g. ["someone@example.com"]. Provide via
-    the per-environment GitHub SECRET IAP_MEMBERS (a JSON array of emails) so the list
-    stays out of the public repo; the CI composite action additionally ::add-mask::es
-    each email so it's redacted in the public plan logs too.
+    A JSON-array STRING of BARE user emails allowed THROUGH IAP, e.g.
+    '["someone@example.com"]'. Decoded with jsondecode() and each entry prefixed with
+    "user:" (see local.iap_principals). Provided via the per-environment GitHub SECRET
+    IAP_MEMBERS so it stays out of the public repo; the CI action ::add-mask::es each
+    email so it's redacted in the public plan logs too.
 
-    NOT marked terraform-`sensitive`: a sensitive var supplied via TF_VAR_ trips
-    Terraform's plan/apply consistency check (esp. when empty) — masking is done in CI
-    instead. Defaults to [] — no email baked into this public repo. Empty is FAIL-CLOSED:
+    TYPE IS string (not list): a LIST supplied via TF_VAR_ is re-read inconsistently
+    between terraform's internal plan and apply phases ("Can't change variable when
+    applying a saved plan"); a string round-trips cleanly. Default "" ⇒ FAIL-CLOSED:
     IAP on + no members ⇒ zero accessor bindings ⇒ nobody admitted (safe, not open).
   EOT
-  type        = list(string)
-  default     = []
+  type        = string
+  default     = ""
 }
 
 variable "iap_member_groups" {
   description = <<-EOT
-    BARE Google Group email addresses allowed THROUGH IAP — each is prefixed with
-    "group:" in code. Empty by default; when you start using groups, supply via a
-    per-environment GitHub secret IAP_MEMBER_GROUPS (a JSON array of group emails).
+    A JSON-array STRING of BARE Google Group emails allowed THROUGH IAP — each decoded
+    and prefixed with "group:". Default "" (none); supply later via the per-environment
+    GitHub secret IAP_MEMBER_GROUPS. String (not list) for the same TF_VAR_ reason as
+    iap_members above.
   EOT
-  type        = list(string)
-  default     = []
+  type        = string
+  default     = ""
 }

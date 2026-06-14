@@ -30,9 +30,11 @@ locals {
   # the (sensitive) input vars get their principal prefix here, so the GitHub secrets
   # can carry plain emails. Derived from sensitive vars ⇒ this local is sensitive too,
   # which keeps the allow-list redacted in plan output (public Action logs).
+  # iap_members / iap_member_groups are JSON-array STRINGS (string vars are TF_VAR-safe;
+  # list vars are not — see variables.tf). Decode, then add the principal prefix.
   iap_principals = concat(
-    [for e in var.iap_members : "user:${e}"],
-    [for g in var.iap_member_groups : "group:${g}"],
+    [for e in(var.iap_members != "" ? jsondecode(var.iap_members) : []) : "user:${e}"],
+    [for g in(var.iap_member_groups != "" ? jsondecode(var.iap_member_groups) : []) : "group:${g}"],
   )
 }
 
