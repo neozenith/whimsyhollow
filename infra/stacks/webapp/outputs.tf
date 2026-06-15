@@ -42,8 +42,8 @@ output "image_base" {
 }
 
 output "artifact_registry_repo" {
-  description = "Artifact Registry repository resource name (created by infra/bootstrap)."
-  value       = data.google_artifact_registry_repository.app.name
+  description = "Artifact Registry repository resource name."
+  value       = google_artifact_registry_repository.app.name
 }
 
 output "assets_bucket" {

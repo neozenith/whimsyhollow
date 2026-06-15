@@ -46,13 +46,13 @@ variable "vertex_location" {
 
 variable "container_image" {
   description = <<-EOT
-    Container image to deploy. Defaults to Google's hello sample so the stack is
-    deployable BEFORE the app's own image exists. The application CD pipeline
-    overrides this (e.g. -var container_image=...) once it pushes a real image to
-    Artifact Registry.
+    OPTIONAL pin for the Cloud Run image. Default "" ⇒ the stack builds the image
+    in-DAG (build.tf) and Cloud Run runs the resulting source-hash tag (local.app_image).
+    Set this to a fully-qualified image ref to pin/rollback to a specific tag instead
+    (which also skips the build — see build.tf count).
   EOT
   type        = string
-  default     = "us-docker.pkg.dev/cloudrun/container/hello"
+  default     = ""
 }
 
 variable "container_port" {

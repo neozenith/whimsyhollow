@@ -40,7 +40,7 @@ resource "google_cloud_run_v2_service" "app" {
     # the agent sidecar on localhost (single public ingress). ---
     containers {
       name  = "backend"
-      image = var.container_image
+      image = local.app_image # built by terraform_data.image (build.tf), or var.container_image pin
 
       # Surfaces the environment in the app UI/health payload (read as ENVIRONMENT
       # by the FastAPI Settings). K_REVISION is set by Cloud Run automatically.
@@ -194,7 +194,9 @@ resource "google_cloud_run_v2_service" "app" {
     # }
   }
 
-  depends_on = [google_project_service.run, google_project_service.aiplatform]
+  # terraform_data.image: the build must push the image BEFORE the service is created
+  # (this is the DAG edge that makes the ordering correct, not implicit/manual).
+  depends_on = [google_project_service.run, google_project_service.aiplatform, terraform_data.image]
 }
 
 # When IAP is off, allow unauthenticated invocation so the run.app URL is usable

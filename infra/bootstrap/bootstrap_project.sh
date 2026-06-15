@@ -89,23 +89,10 @@ gcloud storage buckets update "gs://${TF_STATE_BUCKET}" \
   --project="${PROJECT_ID}" --versioning >/dev/null
 sub "versioning enabled"
 
-# 2b. Artifact Registry repos (one per env) --------------------------------
-# Foundational plumbing, like the state bucket: created ONCE here so CI can push
-# the app image BEFORE `tfs apply` runs (no build-vs-terraform chicken-and-egg).
-# The webapp stack references these via a data source, it does NOT create them.
-log "Artifact Registry repos"
-for env in "${ENVIRONMENTS[@]}"; do
-  repo="${PROJECT_ID}-${env}" # whimsyhollow-<env>; matches local.repository_id in the stack
-  if gcloud artifacts repositories describe "${repo}" \
-      --project="${PROJECT_ID}" --location="${REGION}" >/dev/null 2>&1; then
-    sub "repo ${repo} exists"
-  else
-    gcloud artifacts repositories create "${repo}" \
-      --project="${PROJECT_ID}" --location="${REGION}" --repository-format=docker \
-      --description="Container images for the whimsyhollow webapp (${env})"
-    sub "repo ${repo} created"
-  fi
-done
+# Artifact Registry repos are NOT created here — the webapp stack owns them as
+# first-class terraform resources, built in the right order via the dependency DAG
+# (repo -> image build -> Cloud Run). Bootstrap only enables the artifactregistry API
+# (step 1). See infra/stacks/webapp/{artifact_registry,build}.tf.
 
 # 3. Terraform deployer service account ------------------------------------
 log "Service account"
