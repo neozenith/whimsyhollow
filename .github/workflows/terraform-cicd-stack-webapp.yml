@@ -53,6 +53,4 @@ jobs:
       # The backend image bundles the built React SPA (see backend/Dockerfile) and is
       # the single container the plain app runs — no agent sidecar (it stays disabled
       # in cloudrun.tf). CI builds backend/ and deploys it.
-      build_context: backend
-      image_name: whimsyhollow
     secrets: inherit
