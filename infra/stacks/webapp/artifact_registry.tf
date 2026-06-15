@@ -12,15 +12,6 @@ resource "google_artifact_registry_repository" "app" {
   depends_on = [google_project_service.artifactregistry]
 }
 
-# TRANSIENT migration: adopt the repos a previous design had bootstrap create, so
-# switching from a data source back to a managed resource doesn't 409 ("already
-# exists"). A no-op once the repo is in state; delete this block after every env has
-# applied once (a fresh env just creates the repo and never needs it).
-import {
-  to = google_artifact_registry_repository.app
-  id = "projects/${local.project_id}/locations/${var.region}/repositories/${local.repository_id}"
-}
-
 # Cloud Run pulls the image as the runtime SA — give it read on the repo.
 resource "google_artifact_registry_repository_iam_member" "runtime_reader" {
   location   = google_artifact_registry_repository.app.location
