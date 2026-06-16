@@ -121,7 +121,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_comment.add_argument("stack", help="Stack name")
     p_comment.add_argument("env", choices=VALID_ENVS, help="Target environment")
     p_comment.add_argument("--mode", choices=["state", "plan"], default="plan", help="Diagram mode label")
-    p_comment.add_argument("--artifact-url", required=True, help="URL of the uploaded diagram artifact")
+    p_comment.add_argument("--png-url", required=True, help="URL of the uploaded PNG artifact")
+    p_comment.add_argument("--svg-url", required=True, help="URL of the uploaded SVG artifact")
     p_comment.set_defaults(func=cmd_diagram_comment)
 
     # ---- Terraform passthroughs: <command> <stack> <env> [extra...] ----

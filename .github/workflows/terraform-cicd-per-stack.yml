@@ -161,24 +161,31 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "infra/tfs/uv.lock"
-      # Render the dev plan-delta diagram, upload it as a workflow artifact, then link
-      # that artifact into a sticky PR comment. No ci-diagrams branch: GitHub's own
-      # upload-artifact hosts the SVG+PNG and exposes the URL the comment links to.
+      # Render the dev plan-delta diagram, upload the PNG and SVG as SEPARATE
+      # artifacts (compression-level: 0 — no zip-compression; PNGs are already
+      # compressed), then link both into a sticky PR comment. No ci-diagrams branch.
       - name: Render plan-delta diagram (dev)
         run: uv run --frozen --directory infra/tfs tfs diagram ${{ inputs.stack }} dev --mode plan
-      - id: art
+      - id: png
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ inputs.stack }}-dev-plan-diagram
-          path: |
-            infra/diagrams/${{ inputs.stack }}-dev-plan.svg
-            infra/diagrams/${{ inputs.stack }}-dev-plan.png
+          name: ${{ inputs.stack }}-dev-plan-png
+          path: infra/diagrams/${{ inputs.stack }}-dev-plan.png
+          compression-level: 0
           if-no-files-found: error
-      - name: Comment diagram artifact link on PR
+      - id: svg
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.stack }}-dev-plan-svg
+          path: infra/diagrams/${{ inputs.stack }}-dev-plan.svg
+          compression-level: 0
+          if-no-files-found: error
+      - name: Comment diagram artifact links on PR
         run: >
           uv run --frozen --directory infra/tfs
           tfs diagram-comment ${{ inputs.stack }} dev --mode plan
-          --artifact-url "${{ steps.art.outputs.artifact-url }}"
+          --png-url "${{ steps.png.outputs.artifact-url }}"
+          --svg-url "${{ steps.svg.outputs.artifact-url }}"
 
   # Ready-for-review PR — apply dev only (smoke test before merge to main).
   apply-dev:

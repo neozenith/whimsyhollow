@@ -47,7 +47,7 @@ def marker(stack: str) -> str:
     return f"<!-- tf-diagram:{stack} -->"
 
 
-def comment_body(stack: str, env: str, mode: str, artifact_url: str, sha: str = "") -> str:
+def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sha: str = "") -> str:
     sha_note = f" (`{sha[:12]}`)" if sha else ""
     return "\n".join(
         [
@@ -57,7 +57,7 @@ def comment_body(stack: str, env: str, mode: str, artifact_url: str, sha: str = 
             f"Rendered by `tfs diagram {stack} {env} --mode {mode}`. Nodes are coloured by category; "
             "in plan mode, borders mark create (+) / update (~) / replace (±) / delete (-).",
             "",
-            f"**[⬇️ Download the diagram (SVG + PNG)]({artifact_url})** — workflow artifact{sha_note}.",
+            f"**Download{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}) — workflow artifacts.",
         ]
     )
 
@@ -80,10 +80,10 @@ def _upsert_comment(repo: str, pr: str, mark: str, body: str) -> None:  # pragma
         log.info("created sticky comment on PR #%s", pr)
 
 
-def post_comment(stack: str, env: str, mode: str, artifact_url: str) -> None:  # pragma: no cover - gh IO orchestration
+def post_comment(stack: str, env: str, mode: str, png_url: str, svg_url: str) -> None:  # pragma: no cover - gh IO orchestration
     repo = _require("GITHUB_REPOSITORY")
     _require("GH_TOKEN")  # consumed by `gh`; presence-checked here for a clear error
     pr = resolve_pr_number()
-    body = comment_body(stack, env, mode, artifact_url, os.environ.get("GITHUB_SHA", ""))
+    body = comment_body(stack, env, mode, png_url, svg_url, os.environ.get("GITHUB_SHA", ""))
     _upsert_comment(repo, pr, marker(stack), body)
     log.info("✅ diagram comment posted to PR #%s", pr)
