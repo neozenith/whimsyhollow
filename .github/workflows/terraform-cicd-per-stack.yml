@@ -180,12 +180,12 @@ jobs:
           path: infra/diagrams/${{ inputs.stack }}-dev-plan.svg
           archive: false
           if-no-files-found: error
-      - name: Comment diagram artifact links on PR
+      - name: Comment diagram (inline PNG) on PR
         run: >
           uv run --frozen --directory infra/tfs
           tfs diagram-comment ${{ inputs.stack }} dev --mode plan
-          --png-url "${{ steps.png.outputs.artifact-url }}"
-          --svg-url "${{ steps.svg.outputs.artifact-url }}"
+          --png-artifact-id "${{ steps.png.outputs.artifact-id }}"
+          --svg-artifact-id "${{ steps.svg.outputs.artifact-id }}"
 
   # Ready-for-review PR — apply dev only (smoke test before merge to main).
   apply-dev:

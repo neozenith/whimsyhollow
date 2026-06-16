@@ -74,4 +74,4 @@ def cmd_diagram_comment(args: Namespace) -> None:  # pragma: no cover - gh subpr
     URL into the PR comment. CI-only (reads GH context from the environment)."""
     from tfs.diagrams import publish
 
-    publish.post_comment(args.stack, args.env, args.mode, args.png_url, args.svg_url)
+    publish.post_comment(args.stack, args.env, args.mode, args.png_artifact_id, args.svg_artifact_id)

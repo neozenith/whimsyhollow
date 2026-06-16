@@ -49,15 +49,15 @@ def marker(stack: str) -> str:
 
 def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sha: str = "") -> str:
     sha_note = f" (`{sha[:12]}`)" if sha else ""
-    # The PNG is uploaded raw (archive: false), so its URL embeds inline as an image;
-    # a cache-buster keeps the sticky comment's image fresh across re-renders.
-    cache_bust = f"?v={sha[:12]}" if sha else ""
+    # png_url/svg_url are the RESOLVED raw blob URLs (Content-Disposition: inline) — see
+    # _resolve_inline_url. The PNG embeds inline as an image; the URL is freshly signed
+    # per render so it is inherently cache-busting (GitHub camo re-fetches + caches it).
     return "\n".join(
         [
             marker(stack),
             f"### \U0001f4ca `{stack}` — architecture {mode} ({env})",
             "",
-            f"![{stack} {env} {mode} diagram]({png_url}{cache_bust})",
+            f"![{stack} {env} {mode} diagram]({png_url})",
             "",
             f"Rendered by `tfs diagram {stack} {env} --mode {mode}`. Nodes are coloured by category; "
             "in plan mode, borders mark create (+) / update (~) / replace (±) / delete (-).",
@@ -65,6 +65,24 @@ def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sh
             f"**Artifacts{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}).",
         ]
     )
+
+
+def _resolve_inline_url(repo: str, artifact_id: str, token: str) -> str:  # pragma: no cover - gh artifact redirect IO
+    """Resolve an `archive: false` artifact id to its servable raw blob URL.
+
+    `…/actions/artifacts/{id}/zip` 302-redirects to a Content-Disposition: inline,
+    content-typed blob SAS URL (raw file, not a zip, because the artifact was uploaded
+    un-archived). We read that redirect Location WITHOUT downloading the body. The SAS
+    is short-lived; GitHub's camo proxy caches the bytes when the comment renders."""
+    api = f"https://api.github.com/repos/{repo}/actions/artifacts/{artifact_id}/zip"
+    headers = subprocess.run(
+        ["curl", "-s", "-D", "-", "-o", "/dev/null", "-H", f"Authorization: Bearer {token}", api],
+        check=True, text=True, capture_output=True,
+    ).stdout
+    for line in headers.splitlines():
+        if line.lower().startswith("location:"):
+            return line.split(":", 1)[1].strip()
+    raise RuntimeError(f"no redirect Location for artifact {artifact_id} in {repo} (is it an archive:false upload?)")
 
 
 def _gh(*args: str) -> str:  # pragma: no cover - subprocess IO seam (gh CLI)
@@ -85,10 +103,12 @@ def _upsert_comment(repo: str, pr: str, mark: str, body: str) -> None:  # pragma
         log.info("created sticky comment on PR #%s", pr)
 
 
-def post_comment(stack: str, env: str, mode: str, png_url: str, svg_url: str) -> None:  # pragma: no cover - gh IO orchestration
+def post_comment(stack: str, env: str, mode: str, png_artifact_id: str, svg_artifact_id: str) -> None:  # pragma: no cover - gh IO orchestration
     repo = _require("GITHUB_REPOSITORY")
-    _require("GH_TOKEN")  # consumed by `gh`; presence-checked here for a clear error
+    token = _require("GH_TOKEN")
     pr = resolve_pr_number()
+    png_url = _resolve_inline_url(repo, png_artifact_id, token)
+    svg_url = _resolve_inline_url(repo, svg_artifact_id, token)
     body = comment_body(stack, env, mode, png_url, svg_url, os.environ.get("GITHUB_SHA", ""))
     _upsert_comment(repo, pr, marker(stack), body)
     log.info("✅ diagram comment posted to PR #%s", pr)

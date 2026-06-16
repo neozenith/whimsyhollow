@@ -14,11 +14,12 @@ def test_marker_is_stack_scoped():
 
 
 def test_comment_body_embeds_png_and_links_both_artifacts():
-    png = "https://github.com/o/r/actions/runs/1/artifacts/41"
-    svg = "https://github.com/o/r/actions/runs/1/artifacts/42"
+    # resolved raw blob URLs (Content-Disposition: inline) — embeddable as images
+    png = "https://blob.core.windows.net/actions-results/abc.png?rsct=image/png&sig=x"
+    svg = "https://blob.core.windows.net/actions-results/def.svg?rsct=image/svg+xml&sig=y"
     body = publish.comment_body("webapp", "dev", "plan", png, svg, sha="abcdef1234567890")
     assert body.startswith(publish.marker("webapp"))  # sticky marker first
-    assert f"![webapp dev plan diagram]({png}?v=abcdef123456)" in body  # PNG embedded inline, cache-busted
+    assert f"![webapp dev plan diagram]({png})" in body  # PNG embedded inline (verbatim resolved URL)
     assert svg in body and "SVG" in body  # SVG linked too
     assert "abcdef123456" in body  # sha truncated to 12
 
@@ -26,7 +27,6 @@ def test_comment_body_embeds_png_and_links_both_artifacts():
 def test_comment_body_without_sha():
     body = publish.comment_body("s", "prod", "state", "http://png", "http://svg")
     assert "()" not in body  # no empty sha parens
-    assert "?v=" not in body  # no cache-buster without a sha
     assert "http://png" in body and "http://svg" in body
 
 
