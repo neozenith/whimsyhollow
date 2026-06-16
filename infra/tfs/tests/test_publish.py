@@ -30,6 +30,15 @@ def test_comment_body_without_sha():
     assert "http://png" in body and "http://svg" in body
 
 
+def test_comment_body_regenerate_note():
+    run = "https://github.com/o/r/actions/runs/123"
+    body = publish.comment_body("webapp", "dev", "plan", "http://png", "http://svg", run_url=run)
+    assert "re-run this workflow" in body.lower()
+    assert run in body  # links the GHA run so a broken image can be regenerated
+    # without a run_url (e.g. local) the note is omitted
+    assert "re-run this workflow" not in publish.comment_body("webapp", "dev", "plan", "http://png", "http://svg").lower()
+
+
 @pytest.mark.parametrize(
     "explicit,ref,expected",
     [

@@ -47,24 +47,31 @@ def marker(stack: str) -> str:
     return f"<!-- tf-diagram:{stack} -->"
 
 
-def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sha: str = "") -> str:
+def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sha: str = "", run_url: str = "") -> str:
     sha_note = f" (`{sha[:12]}`)" if sha else ""
     # png_url/svg_url are the RESOLVED raw blob URLs (Content-Disposition: inline) — see
     # _resolve_inline_url. The PNG embeds inline as an image; the URL is freshly signed
     # per render so it is inherently cache-busting (GitHub camo re-fetches + caches it).
-    return "\n".join(
-        [
-            marker(stack),
-            f"### \U0001f4ca `{stack}` — architecture {mode} ({env})",
+    lines = [
+        marker(stack),
+        f"### \U0001f4ca `{stack}` — architecture {mode} ({env})",
+        "",
+        f"![{stack} {env} {mode} diagram]({png_url})",
+        "",
+        f"Rendered by `tfs diagram {stack} {env} --mode {mode}`. Nodes are coloured by category; "
+        "in plan mode, borders mark create (+) / update (~) / replace (±) / delete (-).",
+        "",
+        f"**Artifacts{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}).",
+    ]
+    # The artifact URL is a short-lived signed link (GitHub caches the image). If it ever
+    # shows broken, re-running the workflow re-renders + re-links it. Tell the reader how.
+    if run_url:
+        lines += [
             "",
-            f"![{stack} {env} {mode} diagram]({png_url})",
-            "",
-            f"Rendered by `tfs diagram {stack} {env} --mode {mode}`. Nodes are coloured by category; "
-            "in plan mode, borders mark create (+) / update (~) / replace (±) / delete (-).",
-            "",
-            f"**Artifacts{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}).",
+            f"> ℹ️ Image broken? Its CI artifact link is short-lived — "
+            f"[re-run this workflow]({run_url}) to regenerate and refresh it.",
         ]
-    )
+    return "\n".join(lines)
 
 
 def _resolve_inline_url(repo: str, artifact_id: str, token: str) -> str:  # pragma: no cover - gh artifact redirect IO
@@ -109,6 +116,9 @@ def post_comment(stack: str, env: str, mode: str, png_artifact_id: str, svg_arti
     pr = resolve_pr_number()
     png_url = _resolve_inline_url(repo, png_artifact_id, token)
     svg_url = _resolve_inline_url(repo, svg_artifact_id, token)
-    body = comment_body(stack, env, mode, png_url, svg_url, os.environ.get("GITHUB_SHA", ""))
+    server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    run_url = f"{server}/{repo}/actions/runs/{run_id}" if run_id else ""
+    body = comment_body(stack, env, mode, png_url, svg_url, os.environ.get("GITHUB_SHA", ""), run_url)
     _upsert_comment(repo, pr, marker(stack), body)
     log.info("✅ diagram comment posted to PR #%s", pr)
