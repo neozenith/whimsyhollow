@@ -7,9 +7,10 @@ requires-python = ">=3.12"
 dependencies = [
     "jinja2>=3.1.5",
     "ruamel-yaml>=0.18.10",
-    # `tfs diagram` renders GCP architecture diagrams from terraform JSON.
-    # Requires the system `graphviz` (dot) binary at render time: brew install graphviz
-    "diagrams>=0.23.4",
+    # `tfs diagram` renders its own SVG from vendored draw.io stencils, then
+    # rasterizes to PNG via cairosvg. cairosvg needs the system cairo library at
+    # render time: brew install cairo / apt-get install libcairo2.
+    "cairosvg>=2.9.0",
 ]
 
 [project.scripts]
@@ -40,17 +41,10 @@ testpaths = ["tests"]
 addopts = "--cov=src --cov-report=term-missing"
 
 [tool.coverage.run]
-# External-CLI orchestration + template codegen: exercised by live terraform/gcloud
-# runs and the CI pipeline, not unit-testable without mocks (banned) or a full
-# repo+git+graphviz integration harness. The pure-logic core (config/backends/roots/
-# validate/app) is covered to >=90%.
-omit = [
-    "*/commands/diagram.py",
-    "*/commands/terraform.py",
-    "*/commands/create.py",
-    "*/commands/gha.py",
-    "*/gcp.py",
-]
+# No whole-file omits. Every module is measured. Genuine IO seams — the exact
+# subprocess/cairo/gh call sites that can't run without live terraform/gcloud/cairo
+# — are marked inline with `# pragma: no cover` (visible at the seam, with a reason),
+# never hidden behind a config exclusion. Everything else is unit-tested.
 
 [tool.coverage.report]
 fail_under = 90
@@ -64,11 +58,12 @@ mypy_path = ["src"]
 
 # Untyped third-party libs.
 [[tool.mypy.overrides]]
-module = ["diagrams.*", "ruamel.*", "jinja2.*"]
+module = ["cairosvg.*", "ruamel.*", "jinja2.*"]
 ignore_missing_imports = true
 
-# External-CLI orchestration modules wrap untyped subprocess/diagrams output; they are
-# excluded from coverage and exercised by live runs, so strict typing is relaxed here.
+# cmd_* handlers read argparse.Namespace attributes (dynamically typed), so strict
+# attribute checks are relaxed for those thin handler modules only. Everything else —
+# including the pure publish/terraform/_terraform logic — is strict-typed.
 [[tool.mypy.overrides]]
-module = ["tfs.commands.diagram", "tfs.commands.terraform", "tfs.gcp"]
+module = ["tfs.diagrams.command", "tfs.commands.terraform"]
 ignore_errors = true

@@ -37,9 +37,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write          # diagram job pushes the rendered PNG to the ci-diagrams branch
+  contents: read           # diagram is an uploaded artifact now (no ci-diagrams branch)
   id-token: write          # required by google-github-actions/auth (OIDC)
-  pull-requests: write
+  pull-requests: write     # diagram job posts/updates the sticky PR comment
 
 concurrency:
   group: terraform-webapp-${{ github.ref }}

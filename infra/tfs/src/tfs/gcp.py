@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 PROJECT_ID = "whimsyhollow"
 
 
-def check_project(environment: str) -> None:
+def check_project(environment: str) -> None:  # pragma: no cover - gcloud subprocess IO seam
     """Prove you're authenticated against the single whimsyhollow project. Hard
     failure (no silent skip): if gcloud can't describe the project, stop. The
     environment arg is accepted for call-site symmetry but the project is constant
