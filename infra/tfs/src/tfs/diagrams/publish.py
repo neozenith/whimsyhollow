@@ -49,15 +49,20 @@ def marker(stack: str) -> str:
 
 def comment_body(stack: str, env: str, mode: str, png_url: str, svg_url: str, sha: str = "") -> str:
     sha_note = f" (`{sha[:12]}`)" if sha else ""
+    # The PNG is uploaded raw (archive: false), so its URL embeds inline as an image;
+    # a cache-buster keeps the sticky comment's image fresh across re-renders.
+    cache_bust = f"?v={sha[:12]}" if sha else ""
     return "\n".join(
         [
             marker(stack),
             f"### \U0001f4ca `{stack}` — architecture {mode} ({env})",
             "",
+            f"![{stack} {env} {mode} diagram]({png_url}{cache_bust})",
+            "",
             f"Rendered by `tfs diagram {stack} {env} --mode {mode}`. Nodes are coloured by category; "
             "in plan mode, borders mark create (+) / update (~) / replace (±) / delete (-).",
             "",
-            f"**Download{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}) — workflow artifacts.",
+            f"**Artifacts{sha_note}:** [⬇️ PNG]({png_url}) · [⬇️ SVG (editable in draw.io)]({svg_url}).",
         ]
     )
 

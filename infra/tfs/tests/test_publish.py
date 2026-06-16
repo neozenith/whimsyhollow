@@ -13,20 +13,20 @@ def test_marker_is_stack_scoped():
     assert publish.marker("webapp") != publish.marker("monitoring")
 
 
-def test_comment_body_links_both_artifacts_and_is_sticky():
+def test_comment_body_embeds_png_and_links_both_artifacts():
     png = "https://github.com/o/r/actions/runs/1/artifacts/41"
     svg = "https://github.com/o/r/actions/runs/1/artifacts/42"
     body = publish.comment_body("webapp", "dev", "plan", png, svg, sha="abcdef1234567890")
     assert body.startswith(publish.marker("webapp"))  # sticky marker first
-    assert png in body and svg in body  # both separate artifacts linked
-    assert "PNG" in body and "SVG" in body
-    assert "webapp" in body and "dev" in body and "plan" in body
+    assert f"![webapp dev plan diagram]({png}?v=abcdef123456)" in body  # PNG embedded inline, cache-busted
+    assert svg in body and "SVG" in body  # SVG linked too
     assert "abcdef123456" in body  # sha truncated to 12
 
 
 def test_comment_body_without_sha():
     body = publish.comment_body("s", "prod", "state", "http://png", "http://svg")
     assert "()" not in body  # no empty sha parens
+    assert "?v=" not in body  # no cache-buster without a sha
     assert "http://png" in body and "http://svg" in body
 
 
