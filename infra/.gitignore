@@ -18,4 +18,6 @@ crash.*.log
 tmp/
 
 # Generated architecture diagrams (regenerate with `tfs diagram` / `make diagram`).
-diagrams/
+# Anchored with a leading slash so it matches ONLY infra/diagrams/ (the render
+# output) — NOT the tfs source package src/tfs/diagrams/.
+/diagrams/
