@@ -170,3 +170,11 @@ between the markers are overwritten — keep narrative above this section.
 
 <!-- BEGIN_TF_DOCS -->
 <!-- END_TF_DOCS -->
+
+<!-- tf-diagram:start -->
+## Architecture
+
+_Generated from the `prod` plan by `tfs diagram webapp --readme` — do not edit by hand; re-run that command to refresh._
+
+![webapp architecture (prod)](architecture.svg)
+<!-- tf-diagram:end -->

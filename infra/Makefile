@@ -34,7 +34,7 @@ ENVS := dev test prod
 # - darwin_amd64: Intel Macs (legacy contributor laptops).
 TF_LOCK_PLATFORMS := linux_amd64 darwin_arm64 darwin_amd64
 
-.PHONY: help install bootstrap bootstrap-github create-stack validate-backends gha-check diagram \
+.PHONY: help install bootstrap bootstrap-github create-stack validate-backends gha-check diagram diagram-readme \
         fmt fmt-check fix lint docs security lock lock-check validate-all tfs-ci ci
 
 # NOTE: deliberately NOT declaring init-/plan-/apply-/validate-<env> as .PHONY.
@@ -77,6 +77,9 @@ gha-check: ## Verify every stack has a matching per-stack CI workflow (and vice 
 diagram: ## Render an architecture diagram: make diagram STACK=webapp ENV=dev MODE=state|plan
 	@test -n "$(ENV)" || { echo "ERROR: ENV=<dev|test|prod> is required" >&2; exit 2; }
 	uv run --directory tfs tfs diagram $(STACK) $(ENV) --mode $(or $(MODE),state)
+
+diagram-readme: ## Embed STACK's architecture (prod state) in its README; CHECK=1 to fail-if-stale instead
+	uv run --directory tfs tfs diagram $(STACK) --readme $(if $(CHECK),--check,)
 
 # ---- Per-environment terraform targets (operate on STACK) ----
 # init-<env>, plan-<env>, apply-<env>, validate-<env>
