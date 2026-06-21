@@ -90,7 +90,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Render a GCP architecture diagram from terraform state or a delta plan",
     )
     p_diagram.add_argument("stack", help="Stack name")
-    p_diagram.add_argument("env", choices=VALID_ENVS, help="Target environment")
+    p_diagram.add_argument(
+        "env",
+        nargs="?",
+        choices=VALID_ENVS,
+        default=None,
+        help="Target environment (required unless --readme, which defaults to prod)",
+    )
     p_diagram.add_argument(
         "--mode",
         choices=["state", "plan"],
@@ -107,6 +113,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--out-dir",
         default=None,
         help="Output directory for the .svg/.png (default: <infra-root>/diagrams)",
+    )
+    p_diagram.add_argument(
+        "--readme",
+        action="store_true",
+        help="Embed the architecture (prod state, SVG-only) in stacks/<stack>/README.md instead",
+    )
+    p_diagram.add_argument(
+        "--check",
+        action="store_true",
+        help="With --readme: fail if the committed README diagram is stale (don't write)",
     )
     p_diagram.set_defaults(func=cmd_diagram)
 

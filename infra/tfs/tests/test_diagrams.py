@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from tfs.diagrams import drawio_model, layout, plan_model, registry, stencils, svg_render
+from tfs.diagrams import drawio_model, layout, plan_model, readme, registry, stencils, svg_render
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "plan.json").read_text())
 
@@ -203,3 +203,82 @@ def test_plan_mode_adds_legend_state_mode_does_not():
     assert "+ create" in svg_render.render(g, lay, title="t", mode="plan")
     g2 = plan_model.build_graph(FIXTURE, mode="state", iam="edges")
     assert "+ create" not in svg_render.render(g2, layout.compute(g2), title="t", mode="state")
+
+
+# --- README embedding (the sticky-region pure logic) --------------------------
+
+
+def _fresh_svg() -> str:
+    g = plan_model.build_graph(FIXTURE, mode="state", iam="edges")
+    return svg_render.render(g, layout.compute(g), title="webapp | prod | state", mode="state")
+
+
+def test_embed_block_is_marker_delimited_and_deterministic():
+    a = readme.embed_block("webapp", "prod")
+    b = readme.embed_block("webapp", "prod")
+    assert a == b  # no timestamp/sha — required for the staleness fixed point
+    assert a.startswith(readme.MARKER_START) and a.endswith(readme.MARKER_END)
+    assert f"]({readme.SVG_FILENAME})" in a  # relative image reference
+
+
+def test_upsert_region_injects_when_absent():
+    out = readme.upsert_region("# webapp\n\nIntro.\n", readme.embed_block("webapp", "prod"))
+    assert out.startswith("# webapp\n\nIntro.\n")
+    assert readme.MARKER_START in out and readme.MARKER_END in out
+
+
+def test_upsert_region_replaces_in_place_and_is_idempotent():
+    block = readme.embed_block("webapp", "prod")
+    once = readme.upsert_region("# webapp\n", block)
+    twice = readme.upsert_region(once, block)
+    assert once == twice  # the fixed point staleness() relies on
+    # replacing a STALE region restores the canonical block, doesn't duplicate it
+    stale = once.replace(f"![webapp architecture (prod)]({readme.SVG_FILENAME})", "![old](old.svg)")
+    assert readme.upsert_region(stale, block) == once
+    assert once.count(readme.MARKER_START) == 1
+
+
+def test_upsert_region_handles_empty_readme():
+    assert readme.upsert_region("", readme.embed_block("webapp", "prod")).endswith("\n")
+
+
+def test_staleness_flags_missing_svg_and_missing_region():
+    fresh = _fresh_svg().encode("utf-8")
+    block = readme.embed_block("webapp", "prod")
+    reasons = readme.staleness("# webapp\n", block, committed_svg=None, fresh_svg=fresh)
+    assert any("missing" in r for r in reasons)  # svg
+    assert any("region is missing" in r for r in reasons)  # readme
+
+
+def test_staleness_empty_when_fresh():
+    fresh = _fresh_svg().encode("utf-8")
+    block = readme.embed_block("webapp", "prod")
+    readme_text = readme.upsert_region("# webapp\n", block)
+    assert readme.staleness(readme_text, block, committed_svg=fresh, fresh_svg=fresh) == []
+
+
+def test_staleness_flags_changed_svg():
+    fresh = _fresh_svg().encode("utf-8")
+    block = readme.embed_block("webapp", "prod")
+    readme_text = readme.upsert_region("# webapp\n", block)
+    reasons = readme.staleness(readme_text, block, committed_svg=b"<svg>old</svg>", fresh_svg=fresh)
+    assert reasons == ["architecture.svg is out of date"]
+
+
+@pytest.mark.parametrize(
+    "text,svg_exists,svg_parses,expect_problem",
+    [
+        ("# webapp\n", True, True, "missing the tf-diagram markers"),  # no markers
+        (f"{readme.MARKER_END}\n{readme.MARKER_START}", True, True, "out of order"),  # swapped
+        (f"{readme.MARKER_START}\n{readme.MARKER_END}", False, True, "does not exist"),  # no svg file
+        (f"{readme.MARKER_START}\n{readme.MARKER_END}", True, False, "not valid XML/SVG"),  # bad svg
+    ],
+)
+def test_lint_catches_structural_problems(text, svg_exists, svg_parses, expect_problem):
+    problems = readme.lint(text, svg_exists=svg_exists, svg_parses=svg_parses)
+    assert any(expect_problem in p for p in problems)
+
+
+def test_lint_passes_on_well_formed_region():
+    text = readme.upsert_region("# webapp\n", readme.embed_block("webapp", "prod"))
+    assert readme.lint(text, svg_exists=True, svg_parses=True) == []
